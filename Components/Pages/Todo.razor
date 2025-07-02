@@ -1,37 +1,40 @@
-@page "/todo"
-@using TodoList.Models
-@rendermode InteractiveServer
-<PageTitle>TodoList</PageTitle>
-<h1>Todo (@todos.Count(Todo => !Todo.IsDone))</h1>
+@page "/todo" 
+@*กำหนดที่อยู่ของเว็บ*@
+@using TodoList.Models @*นำเขาโมเดล*@
+@rendermode InteractiveServer //รูปแบบการ render ของหน้าเว็บ โหมดที่ทำให้หน้าเว็บมีการโต้ตอบแบบ real-time
+<PageTitle>TodoList</PageTitle> @*ชื่อแท็บบราวเซอร์*@
+<h1>Todo (@todos.Count(Todo => !Todo.IsDone))</h1>  @*แสดงหัวข้อ + นับงานที่ยังไม่เสร็จ วนลูปดู todos ทั้งหมด  เอาเฉพาะที่ IsDone = false*@
 <ul>
-    @foreach (var todo in todos)
+    @foreach (var todo in todos) //สร้างลิสต์และวนลูปแสดงงานทุกอัน เอาแต่ละ TodoItem จาก todos มาแสดง
     {
     <li>
-        <input type="checkbox" @bind="todo.IsDone"/>
-        <input @bind="todo.Title" />
-        <button @onclick="() => RemoveTodo(todo)">Remove</button>
+        <input type="checkbox" @bind="todo.IsDone"/> @*สร้าง checkbox เช็คว่าเสร็จแล้วหรือยัง @bind = เชื่อมกับ todo.IsDone*@
+        <input @bind="todo.Title" /> @* แสดงชื่องานและแก้ไขได้ พิมพ์แก้ไข → todo.Title เปลี่ยนทันที*@
+        <button @onclick="() => RemoveTodo(todo)">Remove</button> @*ปุ่มลบงาน ด → เรียก RemoveTodo(todo) → ส่ง todo นั้นไปลบ*@
     </li>
     }
 </ul>
 
-<input placeholder="Something ..." @bind="newTodo"/>
-<button @onclick="AddTodo">Add</button>
+<input placeholder="Something ..." @bind="newTodo"/> @*ช่องใส่งานใหม่  พิมพ์ → บันทึกใน newTodo*@
+<button @onclick="AddTodo">Add</button> @*ปุ่มเพิ่มงาน กด → เรียก AddTodo()*@
 
 
 @code {
-    private List<TodoItem> todos = new();
-    private string? newTodo;
-
-    private void AddTodo()
+    private List<TodoItem> todos = new();  //สร้างลิสต์เก็บงานทั้งหมด List<TodoItem> = รายการของ TodoItem
+    private string? newTodo; //เก็บข้อความงานใหม่ที่ผู้ใช้พิมพ์ เป้นตัวแปรคนละชนิดกับบรรทัด 23
+    private void AddTodo() //ฟังก์ชันเพิ่มงานใหม่
     {
-        if (!string.IsNullOrWhiteSpace(newTodo))
+        if (!string.IsNullOrWhiteSpace(newTodo)) //เช็คว่าช่องใส่งานไม่ว่างเปล่า ถ้าไม่ว่าง → สร้างงานใหม่ใส่เข้าไปในรายการ
+
         {
-            todos.Add(new TodoItem { Title = newTodo });
-            newTodo = string.Empty;
+            todos.Add(new TodoItem { Title = newTodo }); //ให้เอาข้อความที่เก็บอยู่ในตัวแปร newTodo ไปสร้างเป็นรายการใหม่ แล้วเพิ่มเข้าไปในลิสต์ชื่อ todos ตัวแปรเป็นลิสต์
+
+
+            newTodo = string.Empty; //เคลียร์ค่าของ newTodo ให้เป็นค่าว่าง (""), เพื่อเตรียมให้ผู้ใช้พิมพ์ข้อความใหม่ในการเพิ่มรายการถัดไป
         }
     }
-    private void RemoveTodo(TodoItem todo)
+    private void RemoveTodo(TodoItem todo) //ฟังก์ชันลบงาน
     {
-        todos.Remove(todo);
+        todos.Remove(todo); //ลบรายการ todo ออกจากลิสต์ todos
     }
 }

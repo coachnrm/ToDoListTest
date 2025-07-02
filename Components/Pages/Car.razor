@@ -1,0 +1,59 @@
+@page "/car"
+@using TodoList.Models
+@rendermode InteractiveServer
+
+<PageTitle>Car List</PageTitle>
+
+<h1>Cars (Total: @cars.Sum(car => car.Quantity))</h1> @*แสดงหัวเรื่องพร้อมยอดรวมจำนวนรถทั้งหมด*@
+
+<ul>
+    @foreach (var car in cars)
+    {
+        <li>
+            <strong>@car.Type</strong> – Quantity: @car.Quantity @*แสดงประเภทรถและจำนวน*@
+            <button @onclick="() => RemoveCar(car)">Remove</button>
+        </li>
+    }
+</ul>
+
+<input placeholder="Car type..." @bind="newCarType" /> @*ช่องกรอกประเภทรถ (ผูกข้อมูลกับตัวแปร newCarType)*@
+<input type="number" placeholder="Quantity..." @bind="newCarQuantity" min="1" /> @*ช่องกรอกจำนวนรถ*@
+<button @onclick="AddCar">Add</button> @*ปุ่มเพิ่มรถใหม่ (เรียก method AddCar)*@
+
+@code {
+    private List<Caritem> cars = new(); // รายการรถทั้งหมด
+    private string? newCarType; // ตัวแปรเก็บประเภทที่กรอกเข้ามา
+    private int? newCarQuantity; // ตัวแปรเก็บจำนวนที่กรอกเข้ามา
+
+    private void AddCar()
+    {
+        if (!string.IsNullOrWhiteSpace(newCarType) && newCarQuantity is > 0)
+        {
+            var existing = cars.FirstOrDefault(c => c.Type?.ToLower() == newCarType.ToLower()); // ตรวจว่ามีประเภทรถนี้อยู่แล้วหรือยัง (ไม่แยกพิมพ์เล็ก/ใหญ่)
+            if (existing != null)
+            {
+                // ถ้ามีอยู่แล้ว ให้รวมจำนวนเข้าไป และอัปเดตเวลาที่แก้ไข
+                existing.Quantity += newCarQuantity.Value;
+                existing.LastModified = DateTime.Now;
+            }
+            else
+            {
+                cars.Add(new Caritem // ถ้าไม่มี ให้เพิ่มรถใหม่ลงในรายการ
+
+                {
+                    Type = newCarType,
+                    Quantity = newCarQuantity.Value,
+                    CreatedDate = DateTime.Now
+                });
+            }
+
+            newCarType = string.Empty;
+            newCarQuantity = null;
+        }
+    }
+
+    private void RemoveCar(Caritem car)
+    {
+        cars.Remove(car);
+    }
+}
