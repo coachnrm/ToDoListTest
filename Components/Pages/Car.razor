@@ -18,7 +18,7 @@
 
 <input placeholder="Car type..." @bind="newCarType" /> @*ช่องกรอกประเภทรถ (ผูกข้อมูลกับตัวแปร newCarType)*@
 <input type="number" placeholder="Quantity..." @bind="newCarQuantity" min="1" /> @*ช่องกรอกจำนวนรถ*@
-<button @onclick="AddCar">Add</button> @*ปุ่มเพิ่มรถใหม่ (เรียก method AddCar)*@
+<button @onclick="AddCar">Add</button> @*ปุ่มเพิ่มรถใหม่*@
 
 @code {
     private List<Caritem> cars = new(); // รายการรถทั้งหมด
@@ -27,14 +27,14 @@
 
     private void AddCar()
     {
-        if (!string.IsNullOrWhiteSpace(newCarType) && newCarQuantity is > 0)
+        if (!string.IsNullOrWhiteSpace(newCarType) && newCarQuantity is > 0) //เช็คค่าว่าง กับเช็คค่าที่มากกว่า 0
         {
             var existing = cars.FirstOrDefault(c => c.Type?.ToLower() == newCarType.ToLower()); // ตรวจว่ามีประเภทรถนี้อยู่แล้วหรือยัง (ไม่แยกพิมพ์เล็ก/ใหญ่)
             if (existing != null)
             {
-                // ถ้ามีอยู่แล้ว ให้รวมจำนวนเข้าไป และอัปเดตเวลาที่แก้ไข
+                // ถ้ามีอยู่แล้ว ให้รวมจำนวนเข้าไป
                 existing.Quantity += newCarQuantity.Value;
-                existing.LastModified = DateTime.Now;
+                @* existing.LastModified = DateTime.Now; *@
             }
             else
             {
@@ -42,8 +42,8 @@
 
                 {
                     Type = newCarType,
-                    Quantity = newCarQuantity.Value,
-                    CreatedDate = DateTime.Now
+                    Quantity = newCarQuantity.Value
+                    
                 });
             }
 
