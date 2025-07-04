@@ -1,0 +1,44 @@
+@page "/getcaradd"
+@using TodoList.Models
+@inject HttpClient _http
+@rendermode InteractiveServer
+
+<h3>รายการรถ (Car Items)</h3>
+
+<div class="table-container">
+    <table class="styled-table">
+        <thead>
+            <tr>
+                <th style="width:10%; text-align:center;">รหัส</th>
+                <th style="width:25%; text-align:center;">ประเภทรถ</th>
+                <th style="width:15%; text-align:center;">จำนวน</th>
+                <th style="width:20%; text-align:center;">วันที่เริ่ม</th>
+                <th style="width:20%; text-align:center;">วันที่สิ้นสุด</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (cars != null)
+            {
+                @foreach (var car in cars)
+                {
+                    <tr>
+                        <td style="text-align:center;">@car.Id</td>
+                        <td>@car.Type</td>
+                        <td style="text-align:center;">@car.Quantity</td>
+                        <td style="text-align:center;">@car.Start:dd/MM/yyyy</td>
+                        <td style="text-align:center;">@(car.End?.ToString("dd/MM/yyyy") ?? "-")</td>
+                    </tr>
+                }
+            }
+        </tbody>
+    </table>
+</div>
+
+@code {
+    private List<Caritem>? cars;
+
+    protected override async Task OnInitializedAsync()
+    {
+        cars = await _http.GetFromJsonAsync<List<Caritem>>("api/Events");
+    }
+}

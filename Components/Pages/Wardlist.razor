@@ -1,0 +1,67 @@
+@* @page "/getward"
+@using TodoList.Models
+@using System.Net.Http.Headers
+@rendermode InteractiveServer
+@inject HttpClient _http 
+
+
+
+
+<br />
+
+<div class="table-container">
+  <table class="styled-table">
+    <thead>
+      <tr>
+        <th style="width:12%; text-align:center;">รหัส</th>
+        <th style="width:60%; text-align:center;">แผนก</th>
+        
+      </tr>
+    </thead>
+    <tbody>
+        @foreach (var i in wards)
+            {
+            <tr>
+                <td style="text-align:center;">@i.ward1</td>
+                <td>@i.name</td>
+            
+            </tr>
+            }
+      <!-- เพิ่มแถวอื่น ๆ ตามต้องการ -->
+    </tbody>
+  </table>
+</div>
+
+
+@code {
+  
+
+    private List<Ward>? wards = new();
+
+
+    
+    protected override async Task OnInitializedAsync()
+    {
+
+        wards = await _http.GetFromJsonAsync<List<Ward>>("api/Ipd/getward");
+    }
+
+    @* private async Task Add()
+    {
+        var response = await _http.PostAsJsonAsync("api/Budget", budgetType);
+
+        if (response.IsSuccessStatusCode)
+        {
+            //HideModal(); // ปิด popup เมื่ออัปเดตสำเร็จ
+            await OnInitializedAsync(); // โหลดข้อมูลใหม่
+            StateHasChanged();         // อัปเดต UI
+        }
+        else
+        {
+            Console.WriteLine($"Error: {response.StatusCode} - Something went wrong!");
+        }
+    } *@
+
+
+
+    } 
