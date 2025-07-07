@@ -1,0 +1,117 @@
+@page "/deletecaradd"
+@using TodoList.Models
+@inject IHttpClientFactory HttpClientFactory
+@inject IJSRuntime JS
+@rendermode InteractiveServer
+
+<PageTitle>Delete Car</PageTitle>
+
+<h3 class="text-center mb-4">รายการรถทั้งหมด</h3>
+
+<div class="container">
+    @if (carList?.Count > 0)
+    {
+        <div class="row justify-content-center">
+            <div class="col-md-10">
+                <table class="table table-bordered text-center">
+                    <thead class="table-light">
+                        <tr>
+                            <th>รหัส</th>
+                            <th>ประเภทรถ</th>
+                            <th>จำนวน</th>
+                            <th>เวลาเริ่ม</th>
+                            <th>เวลาสิ้นสุด</th>
+                            <th style="width:120px;">การลบ</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var car in carList)
+                        {
+                            <tr>
+                                <td>@car.Id</td>
+                                <td>@car.Type</td>
+                                <td>@car.Quantity</td>
+                                <td>@car.Start.ToString("dd/MM/yyyy")</td>
+                                <td>@(car.End?.ToString("dd/MM/yyyy") ?? "-")</td>
+                                <td>
+                                    <button class="btn btn-sm btn-danger"
+                                            @onclick="() => ConfirmDelete(car.Id)">
+                                        ลบ
+                                    </button>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+    else
+    {
+        <p class="text-center">ไม่มีข้อมูลรถในระบบ</p>
+    }
+
+    @if (!string.IsNullOrEmpty(responseMessage))
+    {
+        <div class="alert alert-info text-center mt-3">@responseMessage</div>
+    }
+</div>
+
+@code {
+    private List<CarDto> carList = new(); // รายการรถทั้งหมด
+    private string? responseMessage;      // ข้อความแสดงผล
+
+    // ใช้งาน HttpClient จาก Factory
+    private HttpClient Http => HttpClientFactory.CreateClient("BackEndCar");
+
+    // โหลดข้อมูลเมื่อเปิดหน้า
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadCarList();
+    }
+
+    // โหลดรายการรถทั้งหมด
+    private async Task LoadCarList()
+    {
+        try
+        {
+            carList = await Http.GetFromJsonAsync<List<CarDto>>("api/Events") ?? new();
+        }
+        catch (Exception ex)
+        {
+            responseMessage = $"โหลดรายการรถไม่สำเร็จ: {ex.Message}";
+        }
+    }
+
+    // แสดงกล่องยืนยันก่อนลบ
+    private async Task ConfirmDelete(int id)
+    {
+        bool ok = await JS.InvokeAsync<bool>("confirm", $"ต้องการลบรถรหัส {id} หรือไม่?");
+        if (ok)
+        {
+            await DeleteCars(id);
+        }
+    }
+
+    // ลบข้อมูลจาก API
+    private async Task DeleteCars(int id)
+    {
+        try
+        {
+            var res = await Http.DeleteAsync($"api/Events/{id}");
+            if (res.IsSuccessStatusCode)
+            {
+                responseMessage = $"ลบรถรหัส {id} สำเร็จแล้ว";
+                await LoadCarList(); // โหลดใหม่
+            }
+            else
+            {
+                responseMessage = $"ลบไม่สำเร็จ: {res.StatusCode}";
+            }
+        }
+        catch (Exception ex)
+        {
+            responseMessage = $"เกิดข้อผิดพลาด: {ex.Message}";
+        }
+    }
+}

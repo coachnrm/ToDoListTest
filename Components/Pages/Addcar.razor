@@ -1,38 +1,52 @@
 @page "/getcaradd"
-@using TodoList.Models
+@using TodoList.Models 
 @inject HttpClient _http
+@inject IJSRuntime JS
+@inject NavigationManager navManager
 @rendermode InteractiveServer
 
-<h3>รายการรถ (Car Items)</h3>
+<h3 class="mb-3">รายการรถ</h3>
 
-<div class="table-container">
-    <table class="styled-table">
-        <thead>
+<!-- 🔘 ปุ่มเพิ่มรถใหม่ -->
+<button class="btn btn-success mb-3" @onclick="GoToPostCar">
+    ➕ เพิ่มรถใหม่ (PostCar)
+</button>
+
+@if (cars is not null && cars.Count > 0)
+{
+    <table class="table table-bordered table-striped text-center">
+        <thead class="table-light">
             <tr>
-                <th style="width:10%; text-align:center;">รหัส</th>
-                <th style="width:25%; text-align:center;">ประเภทรถ</th>
-                <th style="width:15%; text-align:center;">จำนวน</th>
-                <th style="width:20%; text-align:center;">วันที่เริ่ม</th>
-                <th style="width:20%; text-align:center;">วันที่สิ้นสุด</th>
+                <th>รหัส</th>
+                <th>ประเภทรถ</th>
+                <th>จำนวน</th>
+                <th>เวลาเริ่ม</th>
+                <th>เวลาสิ้นสุด</th>
+                <th>การจัดการ</th>
             </tr>
         </thead>
         <tbody>
-            @if (cars != null)
+            @foreach (var car in cars)
             {
-                @foreach (var car in cars)
-                {
-                    <tr>
-                        <td style="text-align:center;">@car.Id</td>
-                        <td>@car.Type</td>
-                        <td style="text-align:center;">@car.Quantity</td>
-                        <td style="text-align:center;">@car.Start:dd/MM/yyyy</td>
-                        <td style="text-align:center;">@(car.End?.ToString("dd/MM/yyyy") ?? "-")</td>
-                    </tr>
-                }
+                <tr>
+                    <td>@car.Id</td>
+                    <td>@car.Type</td>
+                    <td>@car.Quantity</td>
+                    <td>@car.Start.ToString("dd/MM/yyyy")</td>
+                    <td>@(car.End?.ToString("dd/MM/yyyy") ?? "-")</td>
+                    <td>
+                        <button class="btn btn-sm btn-warning me-2" @onclick="() => EditCar(car.Id)">แก้ไข</button>
+                        <button class="btn btn-sm btn-danger" @onclick="() => ConfirmDelete(car.Id)">ลบ</button>
+                    </td>
+                </tr>
             }
         </tbody>
     </table>
-</div>
+}
+else
+{
+    <p>ไม่มีข้อมูลรถในระบบ</p>
+}
 
 @code {
     private List<Caritem>? cars;
@@ -40,5 +54,38 @@
     protected override async Task OnInitializedAsync()
     {
         cars = await _http.GetFromJsonAsync<List<Caritem>>("api/Events");
+    }
+
+    private void GoToPostCar()
+    {
+        navManager.NavigateTo("/postcaradd");
+    }
+
+    private void EditCar(int id)
+    {
+        navManager.NavigateTo($"/putcaradd/{id}");
+    }
+
+    private async Task ConfirmDelete(int id)
+    {
+        bool confirm = await JS.InvokeAsync<bool>("confirm", $"คุณต้องการลบรถรหัส {id} ใช่หรือไม่?");
+        if (confirm)
+        {
+            await DeleteCar(id);
+        }
+    }
+
+    private async Task DeleteCar(int id)
+    {
+        var response = await _http.DeleteAsync($"api/Events/{id}");
+        if (response.IsSuccessStatusCode)
+        {
+            cars = await _http.GetFromJsonAsync<List<Caritem>>("api/Events");
+            StateHasChanged();
+        }
+        else
+        {
+            Console.WriteLine($"ลบไม่สำเร็จ: {response.StatusCode}");
+        }
     }
 }
